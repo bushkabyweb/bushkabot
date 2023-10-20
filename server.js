@@ -59,10 +59,10 @@ function refresh(request) {
 
 app.get('/', (_req, res) => {
   res.status(200).end('bot start');
+  refresh()
 });
 
-app.get('/refresh', (req, res) => {
-  refresh(req);
+app.get('/refresh', (_req, res) => {
   res.status(200).end('refresh');
 });
 
