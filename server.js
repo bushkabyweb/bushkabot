@@ -57,9 +57,9 @@ function refresh(request) {
 
 // express
 
-app.get('/', (_req, res) => {
+app.get('/', (req, res) => {
   res.status(200).end('bot start');
-  refresh()
+  refresh(req)
 });
 
 app.get('/refresh', (_req, res) => {
