@@ -15,9 +15,9 @@ async function startHandler(bot, message) {
     reply_markup: {
       keyboard: [
         [
-          { text: '🔎Поиск' },
-          { text: '📰Подать объявление' },
-          { text: '🔥Удалить объявление' },
+          {text: '🔎Поиск'},
+          {text: '📰Подать объявление'},
+          {text: '🔥Удалить объявление'},
         ],
       ],
       resize_keyboard: true,
@@ -27,14 +27,14 @@ async function startHandler(bot, message) {
   let user = await mongo.findUserById(message.from.id);
 
   if (!user) {
-    await mongo.login(message.from)
+    await mongo.login(message.from);
     user = await mongo.findUserById(message.from.id);
   }
 
   if (user.roles.includes('ADMIN')) {
     options.reply_markup.keyboard.push([
-      { text: '✅Верификация' },
-      { text: '✅Верификация по id' },
+      {text: '✅Верификация'},
+      {text: '✅Верификация по id'},
     ]);
     send(bot, message, text, options);
     return;
@@ -61,14 +61,14 @@ function helpHandler(bot, message) {
  * @param {*} findOptions
  * @return {*}
  */
-async function findPostHandler(bot, message, findOptions = { isVerified: true }) {
+async function findPostHandler(bot, message, findOptions = {isVerified: true}) {
   checkClientInfo(message.chat.id);
 
   const currentPage = clientInfo[message.chat.id].page;
 
   let postList = await mongo.find(
-    bot, currentPage, message,
-    send, remove, findOptions,
+      bot, currentPage, message,
+      send, remove, findOptions,
   );
 
   if (!postList.length) {
@@ -99,7 +99,7 @@ async function findPostHandler(bot, message, findOptions = { isVerified: true })
     reply_markup: {
       inline_keyboard: [
         [
-          { text: 'Связаться', url: `tg://user?id=${owner.id}` },
+          {text: 'Связаться', url: `tg://user?id=${owner.id}`},
         ],
         [
           {
@@ -124,8 +124,8 @@ async function findPostHandler(bot, message, findOptions = { isVerified: true })
     options.reply_markup.inline_keyboard = [
       options.reply_markup.inline_keyboard[0],
       [
-        { text: 'Одобрить', callback_data: 'accept' },
-        { text: 'Отклонить', callback_data: 'deny' },
+        {text: 'Одобрить', callback_data: 'accept'},
+        {text: 'Отклонить', callback_data: 'deny'},
       ],
       options.reply_markup.inline_keyboard[1],
     ];
@@ -152,16 +152,16 @@ async function findPostHandler(bot, message, findOptions = { isVerified: true })
  * @return {*}
  */
 async function findPostByIdHandler(
-  bot, message, findOptions = { isVerified: true },
+    bot, message, findOptions = {isVerified: true},
 ) {
   const postIdHandler = async (messagePostId) => {
     const post = await mongo.findPostById(
-      bot,
-      message,
-      messagePostId.text,
-      send,
-      remove,
-      findOptions,
+        bot,
+        message,
+        messagePostId.text,
+        send,
+        remove,
+        findOptions,
     );
 
     if (!post) {
@@ -171,22 +171,22 @@ async function findPostByIdHandler(
     }
 
     const caption = myMessages.generateCaption(post);
-    const options = { caption, parse_mode: 'MarkdownV2' };
+    const options = {caption, parse_mode: 'MarkdownV2'};
     return await sendPhoto(bot, message, post, options);
   };
 
   if (findOptions._id) {
-    return await postIdHandler({ text: findOptions._id });
+    return await postIdHandler({text: findOptions._id});
   }
 
   const postIdPrompt = send(
-    bot, message,
-    myMessages.messageList.admin.findById, findOptions,
+      bot, message,
+      myMessages.messageList.admin.findById, findOptions,
   );
   return await bot.onReplyToMessage(
-    message.chat.id,
-    postIdPrompt.message_id,
-    postIdHandler,
+      message.chat.id,
+      postIdPrompt.message_id,
+      postIdHandler,
   );
 }
 
@@ -212,16 +212,16 @@ async function deletePostByIdHandler(bot, message) {
     mongo.removePostById(bot, message, messagePostId.text, send);
   };
 
-  const options = { reply_markup: { force_reply: true } };
+  const options = {reply_markup: {force_reply: true}};
 
   const postIdPrompt = await send(
-    bot, message,
-    myMessages.messageList.admin.findById, options,
+      bot, message,
+      myMessages.messageList.admin.findById, options,
   );
   return await bot.onReplyToMessage(
-    message.chat.id,
-    postIdPrompt.message_id,
-    postIdHandler,
+      message.chat.id,
+      postIdPrompt.message_id,
+      postIdHandler,
   );
 }
 
@@ -264,7 +264,7 @@ function clsHandler(bot, message) {
 async function allMessageHandler(bot, message) {
   console.log(message);
 
-  await mongo.login(message.from)
+  await mongo.login(message.from);
   checkClientInfo();
 
   if (
@@ -283,7 +283,7 @@ async function allMessageHandler(bot, message) {
  */
 async function callbackQueryHandler(bot, query) {
   if (!clientInfo[query.from.id]) {
-    clientInfo[query.from.id] = { page: 0, prevMessage: null };
+    clientInfo[query.from.id] = {page: 0, prevMessage: null};
   }
 
   const currentPage = clientInfo[query.from.id].page;
@@ -302,15 +302,15 @@ async function callbackQueryHandler(bot, query) {
     case 'prev_page_verify':
       clientInfo[query.from.id].page = (currentPage - 1) || 0;
       prevMessage = await findPostHandler(
-        bot, query.message,
-        { isVerified: false },
+          bot, query.message,
+          {isVerified: false},
       );
       break;
     case 'next_page_verify':
       clientInfo[query.from.id].page += 1;
       prevMessage = await findPostHandler(
-        bot, query.message,
-        { isVerified: false },
+          bot, query.message,
+          {isVerified: false},
       );
       break;
     case 'accept':
@@ -328,7 +328,7 @@ async function callbackQueryHandler(bot, query) {
 
   if (regexp.test(query.data)) {
     clientInfo[query.message.chat.id].page = 0;
-    const findOptions = { _id: query.data.split('_')[2], isVerified: true };
+    const findOptions = {_id: query.data.split('_')[2], isVerified: true};
     await findPostByIdHandler(bot, query.message, findOptions);
   }
 
@@ -352,8 +352,8 @@ async function verifyPostHandler(bot, postMessage, state) {
 
   if (!post) {
     send(
-      bot, postMessage,
-      myMessages.messageList.somethingWentWrong,
+        bot, postMessage,
+        myMessages.messageList.somethingWentWrong,
     );
     return;
   }
@@ -394,7 +394,7 @@ async function verifyPostHandler(bot, postMessage, state) {
  * @param {*} message
  */
 function findPostToVerifyHandler(bot, message) {
-  findPostHandler(bot, message, { isVerified: false });
+  findPostHandler(bot, message, {isVerified: false});
 }
 
 /**
@@ -411,8 +411,8 @@ async function findPostToVerifyByIdHandler(bot, message) {
   if (!user) {
     console.log('[verifyHandler] User not found');
     send(
-      bot, message,
-      myMessages.messageList.admin.userNotFound(message.from.id),
+        bot, message,
+        myMessages.messageList.admin.userNotFound(message.from.id),
     );
     return;
   }
@@ -429,21 +429,21 @@ async function findPostToVerifyByIdHandler(bot, message) {
     };
 
     const post = await mongo.findPostById(
-      bot,
-      message,
-      messagePostId.text,
-      send,
-      remove,
-      findOptions,
+        bot,
+        message,
+        messagePostId.text,
+        send,
+        remove,
+        findOptions,
     );
 
     if (!post) {
       const text = myMessages.messageList
-        .admin.postNotFound(messagePostId.text);
+          .admin.postNotFound(messagePostId.text);
 
       send(bot,
-        message,
-        text,
+          message,
+          text,
       );
       return;
     }
@@ -456,11 +456,11 @@ async function findPostToVerifyByIdHandler(bot, message) {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: 'Связаться', url: `tg://user?id=${owner.id}` },
+            {text: 'Связаться', url: `tg://user?id=${owner.id}`},
           ],
           [
-            { text: 'Одобрить', callback_data: 'accept' },
-            { text: 'Отклонить', callback_data: 'deny' },
+            {text: 'Одобрить', callback_data: 'accept'},
+            {text: 'Отклонить', callback_data: 'deny'},
           ],
         ],
       },
@@ -477,13 +477,13 @@ async function findPostToVerifyByIdHandler(bot, message) {
   };
 
   const postIdPrompt = await send(
-    bot, message,
-    myMessages.messageList.admin.findById, options,
+      bot, message,
+      myMessages.messageList.admin.findById, options,
   );
   return await bot.onReplyToMessage(
-    message.chat.id,
-    postIdPrompt.message_id,
-    postIdHandler,
+      message.chat.id,
+      postIdPrompt.message_id,
+      postIdHandler,
   );
 }
 
@@ -527,12 +527,12 @@ async function sendPhoto(bot, message, post, options) {
  */
 function clearChat(bot, message, i = 0) {
   return bot
-    .deleteMessage(message.chat.id, message.message_id - i)
-    .then(() => clearChat(bot, message, i + 1))
-    .catch(
-      () => message.message_id - i > 0 &&
+      .deleteMessage(message.chat.id, message.message_id - i)
+      .then(() => clearChat(bot, message, i + 1))
+      .catch(
+          () => message.message_id - i > 0 &&
         clearChat(bot, message, i + 1),
-    );
+      );
 }
 
 /**
@@ -545,7 +545,7 @@ function clearChat(bot, message, i = 0) {
 function checkClientInfo(id) {
   if (clientInfo[id]) return;
 
-  clientInfo[id] = { page: 0, prevMessage: null };
+  clientInfo[id] = {page: 0, prevMessage: null};
   return;
 }
 

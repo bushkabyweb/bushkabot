@@ -6,20 +6,21 @@ const config = require('config');
 const axios = require('axios').default;
 
 const mongo = require('./my_modules/mongo');
-const { textOptions } = require('./my_modules/messages');
+const {textOptions} = require('./my_modules/messages');
 const commandHandlers = require('./my_modules/commandHandlers');
 
 const PORT = process.env.PORT || config.get('PORT');
 const token = process.env.TOKEN || '';
-const refreshIntervalDelayInMilliseconds = 60000
+const refreshIntervalDelayInMilliseconds = 60000;
 
 const app = express();
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(token, {polling: true});
 
 /**
  * Start tg bot
  */
 function start() {
+  refresh('https://bushkaweb.onrender.com');
   try {
     mongo.connectToMongoDB();
 
@@ -42,28 +43,30 @@ function start() {
 }
 
 // refresher
-
-function refresh(request) {
+/**
+ *
+ * @param {string} url
+ */
+function refresh(url) {
+  let i = 0;
   setInterval(() => {
-    const url = request.protocol + "://" + request.get("host") + request.originalUrl;
-    axios.get(url + "refresh")
-      .then(({ status }) => console.log(status))
-      .catch((err) => {
-        console.log(err);
-      });
+    axios.get(url)
+        .then(({status}) => {
+          if (i % 60 === 0) {
+            console.log(status);
+          }
+          i++;
+        })
+        .catch((err) => {
+          console.log(err);
+        });
   }, refreshIntervalDelayInMilliseconds);
 }
-
 
 // express
 
 app.get('/', (req, res) => {
   res.status(200).end('bot start');
-  refresh(req)
-});
-
-app.get('/refresh', (_req, res) => {
-  res.status(200).end('refresh');
 });
 
 app.listen(PORT, () => {
